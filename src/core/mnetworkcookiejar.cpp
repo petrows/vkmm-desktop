@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QDateTime>
 #include <QStringList>
+#include <QNetworkCookie>
 
 mNetworkCookieJar::mNetworkCookieJar(QObject *parent) :
 	QNetworkCookieJar(parent)

@@ -5,6 +5,7 @@
 #include <QNetworkReply>
 #include <QDomDocument>
 #include <QDomElement>
+#include <QUrlQuery>
 #include <QDebug>
 
 #include "config.h"
@@ -37,7 +38,9 @@ mApiLastfmRequest::~mApiLastfmRequest()
 QUrl mApiLastfmRequest::baseUrl(QString method)
 {
 	QUrl requestUrl = QUrl("http://ws.audioscrobbler.com/2.0/");
-	requestUrl.addQueryItem("method", method.toStdString().c_str());
+	QUrlQuery q;
+	q.addQueryItem("method", method.toStdString().c_str());
+	requestUrl.setQuery(q);
 	return requestUrl;
 }
 
@@ -199,8 +202,10 @@ void mApiLastfmRequest::sessionOpen(QString user, QString token)
 {
 	method = API_SESSION_OPEN;
 	url    = baseUrl("auth.getMobileSession");
-	url.addQueryItem("username", user.toStdString().c_str());
-	url.addQueryItem("authToken", token.toStdString().c_str());
+	QUrlQuery q(url.query());
+	q.addQueryItem("username", user.toStdString().c_str());
+	q.addQueryItem("authToken", token.toStdString().c_str());
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::trackNowPlaying(QString artist, QString title, QString mbId)
@@ -208,8 +213,10 @@ void mApiLastfmRequest::trackNowPlaying(QString artist, QString title, QString m
 	method = API_TRACK_NOWPLAYING;
 	isPost = true; // Write request
 	url    = baseUrl("track.updateNowPlaying");
-	url.addQueryItem("track", title.toStdString().c_str());
-	url.addQueryItem("artist", artist.toStdString().c_str());
+	QUrlQuery q(url.query());
+	q.addQueryItem("track", title.toStdString().c_str());
+	q.addQueryItem("artist", artist.toStdString().c_str());
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::trackScrobble(QString artist, QString title, quint32 duration, QString mbId, quint64 streamId, uint tms)
@@ -217,16 +224,18 @@ void mApiLastfmRequest::trackScrobble(QString artist, QString title, quint32 dur
 	method = API_TRACK_SCROBBLE;
 	isPost = true; // Write request
 	url    = baseUrl("track.scrobble");
-	url.addQueryItem("track", title.toStdString().c_str());
-	url.addQueryItem("artist", artist.toStdString().c_str());
-	if (!mbId.isEmpty())	url.addQueryItem("mbid", mbId.toStdString().c_str());
-	if (0 != streamId)		url.addQueryItem("streamId", QString::number(streamId).toStdString().c_str());
-	if (0 != duration)		url.addQueryItem("duration", QString::number(duration).toStdString().c_str());
+	QUrlQuery q(url.query());
+	q.addQueryItem("track", title.toStdString().c_str());
+	q.addQueryItem("artist", artist.toStdString().c_str());
+	if (!mbId.isEmpty())	q.addQueryItem("mbid", mbId.toStdString().c_str());
+	if (0 != streamId)		q.addQueryItem("streamId", QString::number(streamId).toStdString().c_str());
+	if (0 != duration)		q.addQueryItem("duration", QString::number(duration).toStdString().c_str());
 	if (0 == tms)
 	{
 		tms = QDateTime::currentDateTime().toTime_t() - 60;
 	}
-	url.addQueryItem("timestamp", QString::number(tms).toStdString().c_str());
+	q.addQueryItem("timestamp", QString::number(tms).toStdString().c_str());
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::trackLove(QString artist, QString title, bool isLove)
@@ -239,31 +248,38 @@ void mApiLastfmRequest::trackLove(QString artist, QString title, bool isLove)
 	} else {
 		url = baseUrl("track.unlove");
 	}
-	url.addQueryItem("track", title.toStdString().c_str());
-	url.addQueryItem("artist", artist.toStdString().c_str());
+	QUrlQuery q(url.query());
+	q.addQueryItem("track", title.toStdString().c_str());
+	q.addQueryItem("artist", artist.toStdString().c_str());
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::userLoved(QString user, uint limit)
 {
 	method = API_USER_LOVED;
 	url    = baseUrl("user.getLovedTracks");
-	url.addQueryItem("user", user.toStdString().c_str());
-	url.addQueryItem("limit", "880000");
+	QUrlQuery q(url.query());
+	q.addQueryItem("user", user.toStdString().c_str());
+	q.addQueryItem("limit", "880000");
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::userRecomended(QString user, uint limit)
 {
 	method = API_USER_RECOMEND;
 	url    = baseUrl("user.getLovedTracks");
-	url.addQueryItem("user", user.toStdString().c_str());
-	url.addQueryItem("limit", "880000");
+	QUrlQuery q(url.query());
+	q.addQueryItem("user", user.toStdString().c_str());
+	q.addQueryItem("limit", "880000");
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::userTracks(QString user, mApiLastfmRequest::apiTopPeriod period, uint limit)
 {
 	method = API_USER_TOP;
 	url    = baseUrl("user.getTopTracks");
-	url.addQueryItem("user", user.toStdString().c_str());
+	QUrlQuery q(url.query());
+	q.addQueryItem("user", user.toStdString().c_str());
 	QString periodString = "overall";
 	switch (period)
 	{
@@ -282,31 +298,36 @@ void mApiLastfmRequest::userTracks(QString user, mApiLastfmRequest::apiTopPeriod
 		default:
 			break;
 	}
-	url.addQueryItem("period", periodString.toStdString().c_str());
-	url.addQueryItem("limit", QString::number(limit).toStdString().c_str());
+	q.addQueryItem("period", periodString.toStdString().c_str());
+	q.addQueryItem("limit", QString::number(limit).toStdString().c_str());
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::userFriends(QString user)
 {
 	method = API_USER_FRIENDS;
 	url    = baseUrl("user.getFriends");
-	url.addQueryItem("user", user.toStdString().c_str());
-	url.addQueryItem("recenttracks", "0");
-	url.addQueryItem("limit", "2000");
+	QUrlQuery q(url.query());
+	q.addQueryItem("user", user.toStdString().c_str());
+	q.addQueryItem("recenttracks", "0");
+	q.addQueryItem("limit", "2000");
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::artistTracks(QString artist, QString mbid, uint limit)
 {
 	method = API_ARTIST_TOP;
 	url    = baseUrl("artist.getTopTracks");
+	QUrlQuery q(url.query());
 	if (!mbid.isEmpty())
 	{
-		url.addQueryItem("mbid", mbid.toStdString().c_str());
+		q.addQueryItem("mbid", mbid.toStdString().c_str());
 	} else {
-		url.addQueryItem("artist", artist.toStdString().c_str());
+		q.addQueryItem("artist", artist.toStdString().c_str());
 	}
-	url.addQueryItem("limit", QString::number(limit).toStdString().c_str());
-	url.addQueryItem("autocorrect", "1");
+	q.addQueryItem("limit", QString::number(limit).toStdString().c_str());
+	q.addQueryItem("autocorrect", "1");
+	url.setQuery(q);
 
 	requestData1 = artist;
 	requestData2 = mbid;
@@ -316,15 +337,17 @@ void mApiLastfmRequest::similarTrack(QString artist, QString title, QString mbid
 {
 	method = API_SIM_TRACK;
 	url    = baseUrl("track.getSimilar");
+	QUrlQuery q(url.query());
 	if (!mbid.isEmpty())
 	{
-		url.addQueryItem("mbid", mbid.toStdString().c_str());
+		q.addQueryItem("mbid", mbid.toStdString().c_str());
 	} else {
-		url.addQueryItem("track", title.toStdString().c_str());
-		url.addQueryItem("artist", artist.toStdString().c_str());
+		q.addQueryItem("track", title.toStdString().c_str());
+		q.addQueryItem("artist", artist.toStdString().c_str());
 	}
-	url.addQueryItem("limit", "2000");
-	url.addQueryItem("autocorrect", "1");
+	q.addQueryItem("limit", "2000");
+	q.addQueryItem("autocorrect", "1");
+	url.setQuery(q);
 }
 
 void mApiLastfmRequest::setSign()
@@ -406,12 +429,13 @@ void mApiLastfm::addRequest(mApiLastfmRequest *r)
 		QUrl postUrl = r->getUrl();
 		QUrl origUrl = r->getUrl();
 		QStringList params;
-		QList< QPair<QString,QString> > urlKeys = postUrl.queryItems();
+		QUrlQuery q = QUrlQuery(postUrl.query());
+		QList< QPair<QString,QString> > urlKeys = q.queryItems();
 		for (int x=0; x<urlKeys.size(); x++)
 		{
-			postUrl.removeAllQueryItems(urlKeys.at(x).first);
-			params.push_back(urlKeys.at(x).first + "=" + origUrl.encodedQueryItemValue(urlKeys.at(x).first.toStdString().c_str()));
+			params.push_back(urlKeys.at(x).first + "=" + q.queryItemValue(urlKeys.at(x).first.toStdString().c_str(), QUrl::FullyEncoded));
 		}
+		postUrl.setQuery("");
 		QNetworkRequest req(postUrl);
 		req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 		ans = net->post(req, params.join("&").toStdString().c_str());
@@ -425,7 +449,8 @@ void mApiLastfm::addRequest(mApiLastfmRequest *r)
 QString mApiLastfm::genSign(QUrl requestUrl)
 {
 	QStringList params;
-	QList< QPair<QString,QString> > urlKeys = requestUrl.queryItems();
+	QUrlQuery q = QUrlQuery(requestUrl.query());
+	QList< QPair<QString,QString> > urlKeys = q.queryItems();
 	for (int x=0; x<urlKeys.size(); x++)
 	{
 		params.push_back(urlKeys.at(x).first + urlKeys.at(x).second);
@@ -436,10 +461,12 @@ QString mApiLastfm::genSign(QUrl requestUrl)
 
 void mApiLastfm::setSign(QUrl &requestUrl)
 {
-	if (mApiLastfm::instance()->isActive()) requestUrl.addQueryItem("sk", mApiLastfm::instance()->sid.toStdString().c_str());
-	requestUrl.addQueryItem("api_key", LASTFM_KEY);
+	QUrlQuery q = QUrlQuery(requestUrl.query());
+	if (mApiLastfm::instance()->isActive()) q.addQueryItem("sk", mApiLastfm::instance()->sid.toStdString().c_str());
+	q.addQueryItem("api_key", LASTFM_KEY);
 	QString sign = mApiLastfm::genSign(requestUrl);
-	requestUrl.addQueryItem("api_sig", sign.toStdString().c_str());
+	q.addQueryItem("api_sig", sign.toStdString().c_str());
+	requestUrl.setQuery(q);
 }
 
 void mApiLastfm::setSid(QString newSid)

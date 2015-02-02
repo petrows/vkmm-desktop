@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QDomDocument>
@@ -27,11 +28,13 @@ void mUpdater::checkForUpdates()
 {
 	QUrl reqUrl;
 	reqUrl.setUrl(QString(UPDATE_BASE_URL));
-    reqUrl.addQueryItem("a", "i");
-    reqUrl.addQueryItem("v", getVersion());
-    reqUrl.addQueryItem("os", OS_NAME);
-    reqUrl.addQueryItem("arch", getArch());
-	reqUrl.addQueryItem("vkuid", mCore::instance()->settings->value("vkuid",0).toString());
+	QUrlQuery q;
+    q.addQueryItem("a", "i");
+    q.addQueryItem("v", getVersion());
+    q.addQueryItem("os", OS_NAME);
+    q.addQueryItem("arch", getArch());
+	q.addQueryItem("vkuid", mCore::instance()->settings->value("vkuid",0).toString());
+	reqUrl.setQuery(q);
 	// qDebug() << reqUrl;
 	QNetworkRequest req(reqUrl);
 	if (mCore::instance()->updateKey.length())
@@ -46,7 +49,9 @@ void mUpdater::setKeyInfo(QString key)
 {
 	QUrl reqUrl;
 	reqUrl.setUrl(QString(UPDATE_BASE_URL));
-	reqUrl.addQueryItem("a", "key");
+	QUrlQuery q;
+	q.addQueryItem("a", "key");
+	reqUrl.setQuery(q);
 	QNetworkRequest req(reqUrl);
 	req.setRawHeader("Update-Key", key.toStdString().c_str());
 	// qDebug() << "Update UID: " << key;
