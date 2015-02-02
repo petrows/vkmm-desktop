@@ -3,6 +3,7 @@
 
 #include <QCompleter>
 #include <QDebug>
+#include <QUrlQuery>
 
 wdgLfmLineCompleted::wdgLfmLineCompleted(QWidget *parent) :
     QLineEdit(parent)
@@ -87,8 +88,10 @@ void wdgLfmLineCompleted::requestComplete(QString text)
 
 	// http://www.lastfm.ru/search/autocomplete?q=as&force=1&username=SA_Mann
 	QUrl reqUrl("http://www.lastfm.ru/search/autocomplete");
-	reqUrl.addQueryItem("q", text.toStdString().c_str());
-	reqUrl.addQueryItem("force", "1");
+	QUrlQuery q;
+	q.addQueryItem("q", text.toStdString().c_str());
+	q.addQueryItem("force", "1");
+	reqUrl.setQuery(q);
 
 	rep = mCore::instance()->net->get(QNetworkRequest(reqUrl));
 	connect(rep,SIGNAL(finished()),SLOT(requestFinished()));

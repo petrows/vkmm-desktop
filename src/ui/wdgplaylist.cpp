@@ -633,7 +633,8 @@ void wdgPlayListModel::setColorCut(int size)
 void wdgPlayListModel::playListStatusChanged(mPlayList::playListLoadState s)
 {
 	emit dataChanged(index(0,0,QModelIndex()),index(playList->getItemsCount()-1,3,QModelIndex()));
-	reset();
+	beginResetModel();
+	endResetModel();
 	view->resizeEvent(NULL);
 }
 

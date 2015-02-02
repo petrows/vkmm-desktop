@@ -4,6 +4,7 @@
 #include <QCloseEvent>
 #include <QWebFrame>
 #include <QDebug>
+#include <QUrlQuery>
 
 #include "core/core.h"
 #include "core/mnetowrkaccess.h"
@@ -49,10 +50,11 @@ void wndLoginBrowser::hideEvent(QHideEvent *)
 void wndLoginBrowser::runAuth()
 {
 	QUrl loginUrl("https://oauth.vk.com/authorize");
-	loginUrl.addQueryItem("client_id",QString::number(APP_ID));
-	loginUrl.addQueryItem("display","popup");
-	loginUrl.addQueryItem("redirect_uri","close.html");
-	loginUrl.addQueryItem("response_type","token");
+	QUrlQuery q(loginUrl.query());
+	q.addQueryItem("client_id",QString::number(APP_ID));
+	q.addQueryItem("display","popup");
+	q.addQueryItem("redirect_uri","close.html");
+	q.addQueryItem("response_type","token");
 
 	int scope = 0;
 	scope += 2; // Firends
@@ -62,7 +64,9 @@ void wndLoginBrowser::runAuth()
     scope += 8192 ; // Wall post
     scope += 262144 ; // Groups
 
-	loginUrl.addQueryItem("scope",QString::number(scope));
+	q.addQueryItem("scope",QString::number(scope));
+	
+	loginUrl.setQuery(q);
 
 	ui->webView->setHtml(tr("<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%1'\"></head><body><center><br/><br/>Пожалуйста, подождите...<br/><br/>Загрузка авторизации ВКонтакте</center></body></html>").arg(loginUrl.toString()));
 
@@ -99,7 +103,7 @@ void wndLoginBrowser::urlChanged(QUrl url)
 	if (!authOk && url.host() == "oauth.vk.com" && url.path() == "/close.html")
 	{
 		// Auth is OK!
-		QUrl hashData(QString("/?") + url.fragment());
+		QUrlQuery hashData(url.fragment());
 		QString token = hashData.queryItemValue("access_token");
 		qint32  exp   = hashData.queryItemValue("expires_in").toInt();
 		qint32  uid   = hashData.queryItemValue("user_id").toInt();

@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QDomDocument>
@@ -32,11 +33,13 @@ wndUpdateWin::wndUpdateWin(QWidget *parent) :
 
     QUrl reqUrl;
     reqUrl.setUrl(QString(UPDATE_BASE_URL));
-    reqUrl.addQueryItem("a", "d");
-    reqUrl.addQueryItem("v", getVersion());
-    reqUrl.addQueryItem("os", OS_NAME);
-    reqUrl.addQueryItem("arch", getArch());
-    reqUrl.addQueryItem("vkuid", mCore::instance()->settings->value("vkuid",0).toString());
+	QUrlQuery q(reqUrl.query());
+    q.addQueryItem("a", "d");
+    q.addQueryItem("v", getVersion());
+    q.addQueryItem("os", OS_NAME);
+    q.addQueryItem("arch", getArch());
+    q.addQueryItem("vkuid", mCore::instance()->settings->value("vkuid",0).toString());
+	reqUrl.setQuery(q);
 
 	// Scan program files
 
