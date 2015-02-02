@@ -265,7 +265,7 @@ void mApiVkRequest::profileLoad(quint64 userId)
 {
 	method = API_GETPROFILE;
 	url    = baseUrl("users.get");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("uids",QString::number(userId));
 	q.addQueryItem("fields","uid,first_name,last_name,nickname,screen_name,sex,photo,online");
 	q.addQueryItem("name_case","nom");
@@ -276,7 +276,7 @@ void mApiVkRequest::groupInfoLoad(quint64 groupId)
 {
 	method = API_GETGROUP;
 	url    = baseUrl("groups.getById");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("gid",QString::number(groupId));
 	q.addQueryItem("fields","");
 	url.setQuery(q);
@@ -286,7 +286,7 @@ void mApiVkRequest::friendsLoad(quint64 userId)
 {
 	method = API_FRIENDS;
 	url    = baseUrl("friends.get");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	if (userId)
 		q.addQueryItem("uid",QString::number(userId));
 	q.addQueryItem("fields","uid,first_name,last_name,nickname,screen_name,sex,photo,online");
@@ -299,7 +299,7 @@ void mApiVkRequest::userAudioLoad(quint64 userId)
 {
 	method = API_USERADIO;
 	url    = baseUrl("audio.get");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	if (userId)
 		q.addQueryItem("uid",QString::number(userId));
 	url.setQuery(q);
@@ -309,7 +309,7 @@ void mApiVkRequest::groupAudioLoad(quint64 groupId)
 {
 	method = API_USERADIO;
 	url    = baseUrl("audio.get");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	if (groupId)
 		q.addQueryItem("gid",QString::number(groupId));
 	url.setQuery(q);
@@ -319,7 +319,7 @@ void mApiVkRequest::userGroupsLoad(quint64 userId)
 {
 	method = API_USERGROUPS;
 	url    = baseUrl("groups.get");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	if (userId)
 		q.addQueryItem("uid",QString::number(userId));
 	q.addQueryItem("extended","1");
@@ -330,7 +330,7 @@ void mApiVkRequest::sendWallAudio(quint64 userId, vkAudioList audio, QString mes
 {
 	method = API_WALLPOST;
 	url    = baseUrl("wall.post");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	if (userId)
 		q.addQueryItem("owner_id",QString::number(userId));
 	message = message.trimmed();
@@ -349,7 +349,7 @@ void mApiVkRequest::sendStatusAudio(qint64 oid, quint64 aid)
 {
 	method = API_STATUSAUDIO;
 	url    = baseUrl("status.set");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("text","");
 	q.addQueryItem("audio",QString::number(oid) + "_" + QString::number(aid));
 	url.setQuery(q);
@@ -365,7 +365,7 @@ void mApiVkRequest::searchAudio(QString text, vkAudioSort sort, bool fixMisspell
 {
 	method = API_SEARCHAUDIO;
 	url    = baseUrl("audio.search");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("q",text);
 	q.addQueryItem("sort",QString::number((int)sort));
 	q.addQueryItem("count",QString::number(size));
@@ -378,7 +378,7 @@ void mApiVkRequest::getAudio(qint64 oid, quint64 aid)
 {
 	method = API_GETAUDIO;
 	url    = baseUrl("audio.getById");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("audios",QString::number(oid)+"_"+QString::number(aid));
 	url.setQuery(q);
 }
@@ -387,7 +387,7 @@ void mApiVkRequest::saveAudio(qint64 oid, quint64 aid)
 {
 	method = API_SAVEAUDIO;
 	url    = baseUrl("audio.add");
-	QUrlQuery q;
+	QUrlQuery q(url.query());
 	q.addQueryItem("aid",QString::number(aid));
 	q.addQueryItem("oid",QString::number(oid));
 	url.setQuery(q);
