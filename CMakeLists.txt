@@ -1,0 +1,213 @@
+CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
+SET (PROJECT "vkmm")
+PROJECT (${PROJECT})
+
+INCLUDE ("vkmm.cmake")
+
+#SET (CMAKE_SKIP_RPATH TRUE)
+SET (BUILD_SYSTEM_ID "")
+# Detect & check OS
+IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    SET (BUILD_LINUX 1)
+	SET (BUILD_SYSTEM_ID "linux")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    SET (BUILD_WIN32 1)
+	SET (BUILD_SYSTEM_ID "win")
+ELSE()
+    MESSAGE(FATAL_ERROR "Unknown build target platform!")
+ENDIF()
+# Detect 32/64 arch
+SET (BUILD_64 0)
+SET (BUILD_32 0)
+SET (BUILD_ARCH "")
+IF (BUILD_WIN32)
+    SET (BUILD_32 1)
+ENDIF()
+
+IF (BUILD_LINUX)
+    IF (CMAKE_SIZEOF_VOID_P EQUAL 4)
+        SET (BUILD_32 1)
+    ENDIF()
+    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        SET (BUILD_64 1)
+    ENDIF()
+ENDIF()
+IF (BUILD_32)
+	SET (BUILD_ARCH "32")
+ENDIF()
+IF (BUILD_64)
+	SET (BUILD_ARCH "64")
+ENDIF()
+
+IF (NOT BUILD_64 AND NOT BUILD_32)
+    MESSAGE(FATAL_ERROR "Unknown build target architecture!")
+ENDIF()
+
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Current time
+EXECUTE_PROCESS(COMMAND date +%s OUTPUT_VARIABLE BUILD_TIMESTAMP OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+find_package(Qt5Core)
+find_package(Qt5Network)
+find_package(Qt5Widgets)
+find_package(Qt5Widgets)
+find_package(Qt5WebKit)
+find_package(Qt5WebKitWidgets)
+
+FILE (GLOB_RECURSE SOURCES "src/*.cpp")
+FILE (GLOB_RECURSE HEADERS "src/*.h")
+FILE (GLOB_RECURSE FORMS "src/ui/*.ui")
+FILE (GLOB_RECURSE RESOURCES "res/*.qrc")
+
+INCLUDE_DIRECTORIES ("src")
+
+# QJson
+ADD_SUBDIRECTORY("3rdpatry/qjson")
+INCLUDE_DIRECTORIES("3rdpatry/qjson/include/")
+
+
+# BASS
+INCLUDE_DIRECTORIES ("bass")
+LINK_DIRECTORIES ("${CMAKE_CURRENT_BINARY_DIR}") 
+LINK_DIRECTORIES ("${CMAKE_CURRENT_SOURCE_DIR}/bass/lib/") 
+
+SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,./")
+
+IF (BUILD_WIN32)
+    #SET (CMAKE_CXX_FLAGS "-O2 -pipe -Wall -fexceptions -mms-bitfields")
+    #SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D UNICODE -D _UNICODE")
+ENDIF()
+IF (BUILD_LINUX)
+    #SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+ENDIF()
+# SingleApp
+INCLUDE_DIRECTORIES ("3rdpatry/qtsingleapplication/src/")
+SET (SOURCES ${SOURCES} "3rdpatry/qtsingleapplication/src/qtsingleapplication.cpp" "3rdpatry/qtsingleapplication/src/qtlocalpeer.cpp")
+SET (HEADERS ${HEADERS} "3rdpatry/qtsingleapplication/src/qtsingleapplication.h" "3rdpatry/qtsingleapplication/src/qtlocalpeer.h")
+
+QT4_WRAP_CPP (MOC_SOURCES ${HEADERS} )
+QT4_WRAP_CPP (MOC_SOURCES_QJSON ${qjson_MOC_HDRS})
+QT4_WRAP_UI (MOC_FORMS ${FORMS})
+QT4_ADD_RESOURCES(RESOURCES_RCC ${RESOURCES})
+
+# Update build-timestamp file
+FILE (REMOVE ${CMAKE_CURRENT_BINARY_DIR}/build-time.h)
+FILE (WRITE ${CMAKE_CURRENT_BINARY_DIR}/build-time.h "#define BUILD_TIME __DATE__\"|\"__TIME__\n")
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
+SET (VKMM_OUT_LIBS)
+IF (BUILD_WIN32)
+    SET (VKMM_OUT_LIBS ${VKMM_OUT_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/bass/lib/bass.dll")
+    SET (VKMM_OUT_LIBS ${VKMM_OUT_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/skel/win/32/vkmm-updater.exe")
+    FOREACH(var ${BUILD_QT_MODULES})
+        SET (COPY_QT_LIB "COPY_QT_LIB-NOTFOUND")
+        FIND_LIBRARY (COPY_QT_LIB "${var}4")
+        IF (COPY_QT_LIB STREQUAL "COPY_QT_LIB-NOTFOUND")
+            MESSAGE(FATAL_ERROR "Library DLL for '${var}4' is not found!")
+        ENDIF()
+        SET (VKMM_OUT_LIBS ${VKMM_OUT_LIBS} "${COPY_QT_LIB}")
+    ENDFOREACH()
+    SET (WINDOWS_SEARCH_LIBS "mingwm10" "libgcc_s_dw2-1" "libeay32" "ssleay32" "libssl32")
+    FOREACH(var ${WINDOWS_SEARCH_LIBS})
+        SET (COPY_WIN_LIB "COPY_WIN_LIB-NOTFOUND")
+        FIND_LIBRARY (COPY_WIN_LIB "${var}")
+        IF (COPY_QT_LIB STREQUAL "COPY_WIN_LIB-NOTFOUND")
+            MESSAGE(FATAL_ERROR "Library DLL for '${var}' is not found!")
+        ENDIF()
+        SET (VKMM_OUT_LIBS ${VKMM_OUT_LIBS} "${COPY_WIN_LIB}")
+    ENDFOREACH()
+    SET (RESOURCES_RCC ${RESOURCES_RCC} res/res.rc)
+ENDIF()
+
+SOURCE_GROUP ("Header Files" FILES ${HEADERS})
+SOURCE_GROUP ("Source Files" FILES ${SOURCES})
+SOURCE_GROUP ("Generated Files" FILES ${MOC_SOURCES})
+SOURCE_GROUP ("Resource Files" FILES ${QRC_SOURCES})
+
+# Create list of vars for config
+SET (CONFIG_SET "")
+GET_CMAKE_PROPERTY(res VARIABLES)
+FOREACH(var ${res})
+	IF(var MATCHES "^CFG_")
+		IF (${${var}})
+			SET (CONFIG_SET "${CONFIG_SET}#define CMAKE_${var} \"${${var}}\"\n")
+		ELSE()
+			SET (CONFIG_SET "${CONFIG_SET}// CMAKE_${var} = \"${${var}}\"\n")
+		ENDIF()
+		MESSAGE(STATUS "Config option set: ${var}")
+	ELSE()
+		#MESSAGE(STATUS "${var} not matches '^CFG_'")
+	ENDIF()
+ENDFOREACH()
+
+CONFIGURE_FILE("src/version.h.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/version.h")
+ 
+ADD_EXECUTABLE (${PROJECT} WIN32 ${SOURCES} ${MOC_SOURCES} ${MOC_FORMS} ${MOC_SOURCES_QJSON} ${qjson_SRCS} ${RESOURCES_RCC} ${TRANSLATIONS})
+ 
+TARGET_LINK_LIBRARIES (${PROJECT} ${LIBRARIES})
+TARGET_LINK_LIBRARIES (${PROJECT} bass)
+TARGET_LINK_LIBRARIES (${PROJECT} qjson)
+# Use the Widgets module from Qt 5.
+TARGET_LINK_LIBRARIES(${PROJECT} Qt5::Core Qt5::WebKit Qt5::WebKitWidgets Qt5::Widgets Qt5::Network)
+
+SET (OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/vkmm-${BUILD_SYSTEM_ID}-${BUILD_ARCH}")
+SET (OUTPUT_BINARY "${OUTPUT_DIR}")
+IF (BUILD_LINUX)
+	SET (OUTPUT_BINARY "${OUTPUT_DIR}/bin")
+ENDIF()
+
+#INSTALL(CODE "FILE(MAKE_DIRECTORY \${OUTPUT_DIR})")
+INSTALL(TARGETS ${PROJECT} DESTINATION "${OUTPUT_BINARY}/")
+
+IF (BUILD_LINUX)
+    IF (BUILD_32)
+        SET (BASS_LIB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/bass/lib-linux-32/libbass.so")
+    ELSE()
+        SET (BASS_LIB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/bass/lib-linux-64/libbass.so")
+    ENDIF()    
+    ADD_CUSTOM_COMMAND(TARGET ${PROJECT} PRE_BUILD
+		COMMAND mkdir -p ${OUTPUT_DIR}/lib
+		COMMAND mkdir -p ${OUTPUT_DIR}/bin
+        COMMAND cp ${BASS_LIB_FILE} ${OUTPUT_DIR}/lib
+        COMMAND cp ${BASS_LIB_FILE} ${CMAKE_CURRENT_BINARY_DIR}
+    )
+ENDIF()
+IF (BUILD_WIN32)
+	FILE(MAKE_DIRECTORY ${OUTPUT_DIR})
+#	IF(NOT IS_DIRECTORY ${OUTPUT_DIR})
+#		ADD_CUSTOM_COMMAND(TARGET ${PROJECT} PRE_BUILD
+#			COMMAND mkdir \"${OUTPUT_DIR}\"
+#		)
+#   ENDIF()
+ENDIF()
+
+# Copy skel!
+IF (BUILD_LINUX)
+IF(IS_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/skel/${BUILD_SYSTEM_ID}/all)
+	ADD_CUSTOM_COMMAND(TARGET ${PROJECT} PRE_BUILD
+		COMMAND bash -c "cp -r --remove-destination ${CMAKE_CURRENT_SOURCE_DIR}/skel/${BUILD_SYSTEM_ID}/all/* ${OUTPUT_DIR}/"
+	)
+ENDIF()
+ENDIF()
+#IF(IS_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/skel/${BUILD_SYSTEM_ID}/${BUILD_ARCH})
+#	ADD_CUSTOM_COMMAND(TARGET ${PROJECT} PRE_BUILD
+#		COMMAND bash -c "cp -r --remove-destination ${CMAKE_CURRENT_SOURCE_DIR}/skel/${BUILD_SYSTEM_ID}/${BUILD_ARCH}/* ${OUTPUT_DIR}/"
+#	)
+#ENDIF()
+
+
+FOREACH(COPY_LIB ${VKMM_OUT_LIBS})
+    MESSAGE(STATUS "COPY LIB: ${COPY_LIB}")
+    INSTALL(FILES ${COPY_LIB} DESTINATION "${OUTPUT_DIR}/" PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+ENDFOREACH()
+
+ADD_CUSTOM_TARGET(strip
+    COMMAND ${CMAKE_STRIP} -s ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT}${CMAKE_EXECUTABLE_SUFFIX}
+)
+

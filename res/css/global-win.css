@@ -1,0 +1,32 @@
+QWidget, QDialog, QPushButton {
+	/*font-family: Verdana, Tahoma, Arial, sans-serif;*/
+}
+
+QPushButton {
+	padding: 5px 10px;
+	min-width: 80px;
+}
+
+#btnPlayPause, #btnPlayNext, #btnPlayPrev {
+	min-width: 10px;
+	width: 32px;
+	padding: 5px;
+}
+
+QTreeView::item {
+	height: 20px;
+}
+
+wdgPlayList::item, QTreeWidget::item
+{
+	border-bottom: 1px solid lightGray;
+}
+wdgPlayList::item:selected, QTreeWidget::item:selected
+{
+	background-color: #008080;
+	color: #FFFFFF;
+}
+wdgPlayList::item:disabled, QTreeWidget::item:disabled
+{
+	border-bottom: none;
+}

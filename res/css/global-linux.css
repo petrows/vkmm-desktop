@@ -1,0 +1,19 @@
+QTreeView::item {
+	height: 20px;
+}
+QStatusBar::item {
+	border: none;
+}
+wdgPlayList::item, QTreeWidget::item
+{
+	border-bottom: 1px solid lightGray;
+}
+wdgPlayList::item:selected, QTreeWidget::item:selected
+{
+	background-color: #008080;
+	color: #FFFFFF;
+}
+wdgPlayList::item:disabled, QTreeWidget::item:disabled
+{
+	border-bottom: none;
+}
