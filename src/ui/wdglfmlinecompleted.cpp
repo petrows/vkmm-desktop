@@ -40,14 +40,18 @@ bool wdgLfmLineCompleted::parseReply(QString data)
 
 	// qDebug() << data;
 
-	QJson::Parser parser;
-	bool ok;
+	QJsonParseError error;
+	QJsonDocument doc = QJsonDocument::fromJson(data.toStdString().c_str(), &error);
+	QJsonObject result = doc.object();
 
-	QVariantMap result = parser.parse(data.toStdString().c_str(), &ok).toMap();
-	if (!ok) return false;
+	if (result["response"].isNull()) return false;
+	
+	return false;
+	
+	/*
+	QJsonObject resp = result["response"].toObject();
 
-	QVariantMap resultHeader = result["response"].toMap();
-	QVariantList res = resultHeader["docs"].toList();
+	QVariantList res = resp["docs"].toList();
 
 	if (res.size() == 0) return false; // Empty reply
 
@@ -58,7 +62,7 @@ bool wdgLfmLineCompleted::parseReply(QString data)
 		repStrings.push_back(doc["artist"].toString());
 	}
 
-	return repStrings.size()>0;
+	return repStrings.size()>0;*/
 }
 
 void wdgLfmLineCompleted::textChangedStart(QString)

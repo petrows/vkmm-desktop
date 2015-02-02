@@ -2,7 +2,9 @@
 #define WDGLFMLINECOMPLETED_H
 
 #include <QLineEdit>
-#include <QJson/Parser>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QJsonObject>
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
