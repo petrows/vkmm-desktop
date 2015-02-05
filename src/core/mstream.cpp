@@ -91,6 +91,7 @@ void mStream::run()
 	{
 		// Start network direct load...
 		net = new mNetowrkAccess(this);
+		net->moveToThread(this);
 		setProxy(net);
 		netReply = net->get(QNetworkRequest(url));
 		downloadSpeedTimer.restart();
