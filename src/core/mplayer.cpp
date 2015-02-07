@@ -71,6 +71,8 @@ void mPlayer::playItem(mPlayListItem *item)
 	playbackId = idCounter;
 	currentItem = item;
 
+	qDebug() << "Play URL: " << currentItem->vkRecord.url;
+
 	// Ok, need to be searched?
 	if (!currentItem->vkRecord.isValid && !currentItem->lastfmTrack.artist.isEmpty())
 	{

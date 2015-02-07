@@ -73,6 +73,7 @@ private slots:
 	void onNetProgress(qint64 bytesReceived , qint64 bytesTotal);
 	void onNetReadyRead();
 	void onNetError(QNetworkReply::NetworkError code);
+	void onNetResult();
 
 private:
 	mStreamStarter			* starter;

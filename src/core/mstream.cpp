@@ -104,6 +104,8 @@ void mStream::run()
 		connect(netReply,SIGNAL(downloadProgress(qint64,qint64)),SLOT(onNetProgress(qint64,qint64)));
 		// Error signal
 		connect(netReply,SIGNAL(error(QNetworkReply::NetworkError)),SLOT(onNetError(QNetworkReply::NetworkError)));
+		// End request (check an error)
+		connect(netReply, &QNetworkReply::finished, this, &mStream::onNetResult);
 	} else {
 		// Start cached (local file) playback
 		QFile cachedData(cachedFile);
@@ -397,4 +399,35 @@ void mStream::onNetError(QNetworkReply::NetworkError code)
 	// Error!
 	mCore::instance()->statusMessage(mCore::STATUS_FAIL, tr("Ошибка загрузки файла"));
 	emit streamDownloadError(id);
+}
+
+void mStream::onNetResult()
+{
+	QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+	Q_CHECK_PTR(reply);
+
+	if (!reply) return;
+
+	switch (reply->error())
+	{
+	case QNetworkReply::NoError:
+	{
+		int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+		switch (statusCode) {
+		case 301:
+		case 302:
+		case 307:
+			qDebug() << "redirected: " << reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+
+			onNetError(QNetworkReply::ContentNotFoundError);
+			break;
+		default:
+			break;
+		}
+	} break;
+	case QNetworkReply::ContentNotFoundError:
+		// 404 Not found
+		MSTREAM_DEBUG("Error 404!")
+		break;
+	}
 }
