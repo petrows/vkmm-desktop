@@ -46,8 +46,9 @@ QUrl mApiLastfmRequest::baseUrl(QString method)
 
 void mApiLastfmRequest::process(QNetworkReply *rep)
 {
+	qDebug() << "Last.fm reply: " << rep->request().url();
 	QString xmlData = rep->readAll();
-	// qDebug() << xmlData;
+	qDebug() << xmlData;
 	QDomDocument xml;
 	if (!xml.setContent(xmlData))
 	{

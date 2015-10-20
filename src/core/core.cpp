@@ -302,6 +302,7 @@ void mCore::lastfmSessionDone(bool res, QString user, QString sid)
 	if (!res)
 	{
 		// Show error!
+		QMessageBox::warning(uiWndMain,tr("Ошибка Last.FM"),tr("Ошибка входа Last.FM"));
 	} else {
 		mApiLastfm::instance()->setSid(sid); // Saving new sid!
 		settings->setValue("lastfm/sid", sid);
