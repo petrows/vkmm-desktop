@@ -297,6 +297,8 @@ void mCore::authReject()
 
 void mCore::lastfmSessionDone(bool res, QString user, QString sid)
 {
+	qDebug() << "LastFm session: " << res;
+
 	if (!res)
 	{
 		// Show error!

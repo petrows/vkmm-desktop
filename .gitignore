@@ -31,5 +31,7 @@ Makefile*
 *.qmlproject.user
 *.qmlproject.user.*
 CMakeLists.txt.*
+manifest.json
+vkmm-desktop.json
 
 build_*

@@ -28,7 +28,7 @@ mPlayer::mPlayer(QObject *parent) :
 		return;
 	}
 
-	if (!BASS_Init(1,44100,0,NULL,NULL))
+	if (!BASS_Init(-1,44100,0,NULL,NULL))
 	{
 		QMessageBox::warning(0,"BASS error",tr("Enable to init device! Error %1").arg(BASS_ErrorGetCode()));
 		return;
