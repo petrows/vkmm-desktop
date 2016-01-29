@@ -28,6 +28,14 @@ void mStreamStarter::run()
 {
 	// Run start stream & exit
 	MSTREAM_DEBUG(0);
+
+	BASS_Free();
+
+	if (!BASS_Init(-1, 44100, BASS_DEVICE_FREQ | BASS_DEVICE_DMIX, NULL, NULL))
+	{
+		MSTREAM_DEBUG("Error in init!!");
+	}
+
 	// Start stream creation proc
 	BASS_FILEPROCS fileprocs = {&mStreamCbClose, &mStreamCbLength, &mStreamCbReader, &mStreamCbSeek}; // callback table
 	HSTREAM ss = BASS_StreamCreateFileUser(STREAMFILE_BUFFER, BASS_STREAM_PRESCAN, &fileprocs, stream);
@@ -75,11 +83,6 @@ mStream::mStream(uint streamId, QUrl streamUrl, qint64 streamUrlId, QObject *par
 
 mStream::~mStream()
 {
-	SAFE_DELETE(starter);
-	SAFE_DELETE(net);
-	SAFE_DELETE(netReply);
-	SAFE_DELETE(streamPosTimer);
-	SAFE_DELETE_ARRAY(streamBuf);
 	MSTREAM_DEBUG("Deleted");
 }
 
@@ -94,6 +97,7 @@ void mStream::run()
 		net->moveToThread(this);
 		setProxy(net);
 		netReply = net->get(QNetworkRequest(url));
+		netReply->moveToThread(this);
 		downloadSpeedTimer.restart();
 		downloadSpeedSize = 0;
 		downloadSpeedLast = -1;
@@ -122,13 +126,23 @@ void mStream::run()
 
 			// Start 'Starter' thread - for async media call
 			starter = new mStreamStarter(this, this);
+			starter->moveToThread(this);
 			starter->start();
 
 			cachedData.close();
 			emit streamDownloadStatus(id, streamBufSize, streamBufSize, -1);
 		}
 	}
+
 	exec();
+
+	SAFE_DELETE(starter);
+	SAFE_DELETE(net);
+	SAFE_DELETE(netReply);
+	SAFE_DELETE(streamPosTimer);
+	SAFE_DELETE_ARRAY(streamBuf);
+
+	MSTREAM_DEBUG("Loop exit");
 }
 
 void mStream::cbStreamEnded()
