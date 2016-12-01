@@ -9,6 +9,15 @@
 #include <QPushButton>
 #include <QDebug>
 
+#if !defined(__TIME__)
+#	define __TIME__ "no"
+#endif
+
+#if !defined(__DATE__)
+#	define __DATE__ "no"
+#endif
+
+
 QString getCss(QString name)
 {
     QString out;
@@ -52,6 +61,8 @@ QString getVersion()
 
 QDateTime getBuildTime()
 {
+	return QDateTime();
+	/*
 	QString buildDate = __DATE__" "__TIME__; // Jun 16 2012 16:55:47
 	QStringList buildDateComp = buildDate.split(" ");
 
@@ -59,7 +70,7 @@ QDateTime getBuildTime()
 
 	buildDate = QObject::tr("%1.%2.%3 %4").arg(buildDateComp.at(1)).arg(monthNum).arg(buildDateComp.at(2)).arg(buildDateComp.at(3));
 
-	return QDateTime::fromString(buildDate,"dd.M.yyyy HH:mm:ss");
+	return QDateTime::fromString(buildDate,"dd.M.yyyy HH:mm:ss");*/
 }
 
 int getMonthNum(const QString & m)

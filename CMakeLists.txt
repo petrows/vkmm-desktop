@@ -1,10 +1,12 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 SET (PROJECT "vkmm")
 PROJECT (${PROJECT})
 
 INCLUDE ("vkmm.cmake")
 
 SET (BUILD_SYSTEM_ID "")
+
+MESSAGE(STATUS "Build system ${CMAKE_SYSTEM_NAME}")
 # Detect & check OS
 IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     SET (BUILD_LINUX 1)
@@ -12,6 +14,10 @@ IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     SET (BUILD_WIN32 1)
 	SET (BUILD_SYSTEM_ID "win")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    SET (BUILD_MACOSX 1)
+    SET (BUILD_64 1)
+	SET (BUILD_SYSTEM_ID "mac")
 ELSE()
     MESSAGE(FATAL_ERROR "Unknown build target platform!")
 ENDIF()
@@ -21,6 +27,9 @@ SET (BUILD_32 0)
 SET (BUILD_ARCH "")
 IF (BUILD_WIN32)
     SET (BUILD_32 1)
+ENDIF()
+IF (BUILD_MACOSX)
+    SET (BUILD_64 1)
 ENDIF()
 
 IF (BUILD_LINUX)
@@ -44,6 +53,7 @@ ENDIF()
 
 SET(BUILD_SHARED_LIBS OFF)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 IF (POLICY CMP0020)
@@ -56,8 +66,7 @@ EXECUTE_PROCESS(COMMAND date +%s OUTPUT_VARIABLE BUILD_TIMESTAMP OUTPUT_STRIP_TR
 find_package(Qt5Core)
 find_package(Qt5Network)
 find_package(Qt5Widgets)
-find_package(Qt5WebKit)
-find_package(Qt5WebKitWidgets)
+find_package(Qt5WebEngine)
 find_package(Qt5Xml)
 
 FILE (GLOB_RECURSE SOURCES "src/*.cpp")
@@ -100,7 +109,7 @@ QT5_ADD_RESOURCES(RESOURCES_RCC ${RESOURCES})
 
 # Update build-timestamp file
 FILE (REMOVE ${CMAKE_CURRENT_BINARY_DIR}/build-time.h)
-FILE (WRITE ${CMAKE_CURRENT_BINARY_DIR}/build-time.h "#define BUILD_TIME __DATE__\"|\"__TIME__\n")
+FILE (WRITE ${CMAKE_CURRENT_BINARY_DIR}/build-time.h "#define BUILD_TIME ${BUILD_TIMESTAMP}\n")
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -158,10 +167,7 @@ TARGET_LINK_LIBRARIES (${PROJECT} ${LIBRARIES})
 TARGET_LINK_LIBRARIES (${PROJECT} bass)
 TARGET_LINK_LIBRARIES (${PROJECT} qjson)
 # Use the Widgets module from Qt 5.
-TARGET_LINK_LIBRARIES(${PROJECT} Qt5::Core Qt5::WebKit Qt5::WebKitWidgets Qt5::Widgets Qt5::Network Qt5::Xml)
-IF (BUILD_WIN32)
-	TARGET_LINK_LIBRARIES(${PROJECT} Qt5::WinMain) # Correct entry point
-ENDIF()
+TARGET_LINK_LIBRARIES(${PROJECT} Qt5::Core Qt5::WebEngine Qt5::Widgets Qt5::Network Qt5::Xml)
 
 SET (OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/vkmm-${BUILD_SYSTEM_ID}-${BUILD_ARCH}")
 SET (OUTPUT_BINARY "${OUTPUT_DIR}")
@@ -217,10 +223,3 @@ ENDFOREACH()
 ADD_CUSTOM_TARGET(strip
     COMMAND ${CMAKE_STRIP} -s ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT}${CMAKE_EXECUTABLE_SUFFIX}
 )
-
-qt5_use_modules(${PROJECT} Core)
-qt5_use_modules(${PROJECT} WebKit)
-qt5_use_modules(${PROJECT} WebKitWidgets)
-qt5_use_modules(${PROJECT} Widgets)
-qt5_use_modules(${PROJECT} Network)
-qt5_use_modules(${PROJECT} Xml)
