@@ -66,7 +66,8 @@ EXECUTE_PROCESS(COMMAND date +%s OUTPUT_VARIABLE BUILD_TIMESTAMP OUTPUT_STRIP_TR
 find_package(Qt5Core)
 find_package(Qt5Network)
 find_package(Qt5Widgets)
-find_package(Qt5WebEngine)
+find_package(Qt5WebKit)
+find_package(Qt5WebKitWidgets)
 find_package(Qt5Xml)
 
 FILE (GLOB_RECURSE SOURCES "src/*.cpp")
@@ -167,7 +168,7 @@ TARGET_LINK_LIBRARIES (${PROJECT} ${LIBRARIES})
 TARGET_LINK_LIBRARIES (${PROJECT} bass)
 TARGET_LINK_LIBRARIES (${PROJECT} qjson)
 # Use the Widgets module from Qt 5.
-TARGET_LINK_LIBRARIES(${PROJECT} Qt5::Core Qt5::WebEngine Qt5::Widgets Qt5::Network Qt5::Xml)
+TARGET_LINK_LIBRARIES(${PROJECT} Qt5::Core Qt5::WebKit Qt5::Widgets Qt5::WebKitWidgets Qt5::Network Qt5::Xml)
 
 SET (OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/vkmm-${BUILD_SYSTEM_ID}-${BUILD_ARCH}")
 SET (OUTPUT_BINARY "${OUTPUT_DIR}")
